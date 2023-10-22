@@ -1,7 +1,6 @@
 import { Logger } from '@nestjs/common';
 import * as httpContext from 'express-http-context';
 import { ILogger } from '../types';
-import { COMMON_CONSTANTS } from '../../constants';
 
 type LOG_METHOD = 'log' | 'error' | 'warn' | 'debug';
 
@@ -37,7 +36,6 @@ export class LoggerService implements ILogger {
   }
 
   private _preparePayload(message: any, data?: string | Record<string, any>) {
-    const requestId = httpContext.get(COMMON_CONSTANTS.HEADER.REQUEST_ID);
-    return `${requestId} - ${message} `;
+    return `${message} `;
   }
 }

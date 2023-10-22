@@ -3,7 +3,7 @@ import { ChainableCommander, Redis } from 'ioredis';
 import { ICachingService, RedisCache } from './redis.interface';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { promisify } from 'util';
-import { convertUnitTime, UnitTime } from 'src/utils';
+import { convertUnitTime, UnitTime } from '../../utils';
 
 @Injectable()
 export class RedisService implements ICachingService {

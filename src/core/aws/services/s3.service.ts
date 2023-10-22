@@ -8,12 +8,12 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { IStorageService } from 'src/core/types';
+import { IStorageService } from '../../../core/types';
 import {
   getSignedUrl as getCloudFrontSignedUrl,
   getSignedCookies,
 } from '@aws-sdk/cloudfront-signer';
-import { generateRandomId } from 'src/utils';
+import { generateRandomId } from '../../../utils';
 
 @Injectable()
 export class AwsS3Service implements IStorageService {
