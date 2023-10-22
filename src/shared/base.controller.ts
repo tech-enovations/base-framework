@@ -1,6 +1,6 @@
 import { HttpStatus } from '@nestjs/common';
 import { Response } from 'express';
-import { LoggerService } from 'src/core/logger';
+import { LoggerService } from '../../src/core/logger';
 
 export class BaseController {
   private _logger = new LoggerService(BaseController.name);
