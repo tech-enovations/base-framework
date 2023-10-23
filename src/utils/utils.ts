@@ -1,4 +1,4 @@
-import { customAlphabet } from 'nanoid';
+// import { customAlphabet } from 'nanoid';
 
 export enum UnitTime {
   Seconds = 'seconds',
@@ -50,9 +50,10 @@ export const getBucketCacheKey = (key: string, id: number) => {
 };
 
 export const generateRandomId = () => {
-  const nanoid = customAlphabet(
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
-    6,
-  );
-  return `${new Date().getTime()}-${nanoid()}`;
+  // const nanoid = customAlphabet(
+  //   'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
+  //   6,
+  // );
+  // return `${new Date().getTime()}-${nanoid()}`;
+  return `${new Date().getTime()}`;
 };
