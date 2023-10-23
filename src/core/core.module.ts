@@ -1,12 +1,11 @@
 import { Global, Module } from '@nestjs/common';
+import { AwsModule } from './aws';
 import { LoggerService } from './logger';
 import { CoreServices, LoggerFactory } from './types';
-import { AwsModule } from './aws';
-import { RedisModule } from './redis';
 
 @Global()
 @Module({
-  imports: [AwsModule, RedisModule],
+  imports: [AwsModule],
   controllers: [],
   providers: [
     {
@@ -16,6 +15,6 @@ import { RedisModule } from './redis';
       },
     },
   ],
-  exports: [CoreServices.LoggingService, AwsModule, RedisModule],
+  exports: [CoreServices.LoggingService, AwsModule],
 })
 export class CoreModule {}
