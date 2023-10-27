@@ -1,19 +1,15 @@
 import {
   CopyObjectCommand,
   DeleteObjectCommand,
-  GetObjectCommand,
   PutObjectCommand,
   S3,
 } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { getSignedUrl as getCloudFrontSignedUrl } from '@aws-sdk/cloudfront-signer';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { IStorageService } from '../../../core/types';
-import {
-  getSignedUrl as getCloudFrontSignedUrl,
-  getSignedCookies,
-} from '@aws-sdk/cloudfront-signer';
+import { IStorageService, STORAGE_UPLOAD_EVENT } from '../../../core/types';
 import { generateRandomId } from '../../../utils';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class AwsS3Service implements IStorageService {
@@ -25,7 +21,11 @@ export class AwsS3Service implements IStorageService {
   private _cloudfrontEndpoint: string;
   private _cloudfrontKeyPairId: string;
   private _cloudfrontPrivateKey: string;
-  constructor(private _configService: ConfigService) {
+
+  constructor(
+    private _configService: ConfigService,
+    private _eventEmitter: EventEmitter2,
+  ) {
     this._s3 = new S3({
       region: _configService.get('REGION'),
       credentials: {
@@ -45,6 +45,11 @@ export class AwsS3Service implements IStorageService {
     this._cloudfrontKeyPairId = _configService.get('CLOUDFRONT_KEY_PAIR_ID');
     this._cloudfrontPrivateKey = _configService.get('CLOUDFRONT_PRIVATE_KEY');
   }
+
+  get s3() {
+    return this._s3;
+  }
+
   getUrl(path: string): string {
     return `${this._urlPrefix}/${path}`;
   }
@@ -66,6 +71,7 @@ export class AwsS3Service implements IStorageService {
       Key: filePath,
       ContentType: file.mimetype,
     });
+    this._eventEmitter.emit(STORAGE_UPLOAD_EVENT, command);
     await this._s3.send(command);
     return this._getS3UploadResponse(filePath);
   }
