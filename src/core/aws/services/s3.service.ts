@@ -71,12 +71,12 @@ export class AwsS3Service implements IStorageService {
       Key: filePath,
       ContentType: file.mimetype,
     });
-    this._eventEmitter.emit(STORAGE_UPLOAD_EVENT, command);
-    // await this._s3.send(command);
-    return {
-      path: filePath,
-      url: filePath,
-    };
+    // this._eventEmitter.emit(STORAGE_UPLOAD_EVENT, command);
+    await this._s3.send(command);
+    // return {
+    //   path: filePath,
+    //   url: filePath,
+    // };
     return this._getS3UploadResponse(filePath);
   }
   async storePermanent(path: string, newFolder: string) {
