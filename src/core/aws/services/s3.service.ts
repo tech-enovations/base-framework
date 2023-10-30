@@ -75,27 +75,24 @@ export class AwsS3Service implements IStorageService {
       Key: filePath,
       ContentType: file.mimetype,
     });
-    // this._eventEmitter.emit(STORAGE_UPLOAD_EVENT, command);
-    // return {
-    //   path: filePath,
-    //   url: filePath,
-    // };
-    const thumbnailKey = filePath + this._thumbnailExt;
-    const thumbnailCommand = new PutObjectCommand({
-      Bucket: process.env.S3_BUCKET,
-      Body: await sharp(file.buffer)
-        .resize(200, 200)
-        .webp({ effort: 3 })
-        .toBuffer(),
-      Key: thumbnailKey,
-      ContentType: file.mimetype,
-    });
-    await Promise.all([
-      this._s3.send(command),
-      this._s3.send(thumbnailCommand),
-    ]);
+
+    await this._s3.send(command);
     const response = await this._getS3UploadResponse(filePath);
-    response['thumbnail'] = thumbnailKey;
+    if (file.mimetype.includes('image')) {
+      const thumbnailKey = filePath + this._thumbnailExt;
+      const thumbnailCommand = new PutObjectCommand({
+        Bucket: process.env.S3_BUCKET,
+        Body: await sharp(file.buffer)
+          .resize(200, 200)
+          .webp({ effort: 3 })
+          .toBuffer(),
+        Key: thumbnailKey,
+        ContentType: file.mimetype,
+      });
+      await this._s3.send(thumbnailCommand);
+      response['thumbnail'] = thumbnailKey;
+    }
+
     return response;
   }
   async storePermanent(path: string, newFolder: string) {
