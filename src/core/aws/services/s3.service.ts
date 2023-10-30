@@ -61,7 +61,6 @@ export class AwsS3Service implements IStorageService {
     return `${this._temporaryFolder}/${generateRandomId()}`;
   }
   public async uploadFile(file: Express.Multer.File) {
-    const filePath = this._generateFilePath();
     // let ContentType = file.mimetype;
     // if (FILE_CONSTANT.IMAGE_MIME_TYPES.includes(ContentType)) {
     //   ContentType = 'image/png';
@@ -69,6 +68,11 @@ export class AwsS3Service implements IStorageService {
     // if (FILE_CONSTANT.VIDEO_MIME_TYPES.includes(ContentType)) {
     //   ContentType = 'video/mp4';
     // }
+    if (file.mimetype.includes('image')) {
+      return this._resizeAndUploadImage(file);
+    }
+
+    const filePath = this._generateFilePath();
     const command = new PutObjectCommand({
       Bucket: process.env.S3_BUCKET,
       Body: file.buffer,
@@ -77,22 +81,33 @@ export class AwsS3Service implements IStorageService {
     });
 
     await this._s3.send(command);
-    const response = await this._getS3UploadResponse(filePath);
-    if (file.mimetype.includes('image')) {
-      const thumbnailKey = filePath + this._thumbnailExt;
-      const thumbnailCommand = new PutObjectCommand({
-        Bucket: process.env.S3_BUCKET,
-        Body: await sharp(file.buffer)
-          .resize(200, 200)
-          .webp({ effort: 3 })
-          .toBuffer(),
-        Key: thumbnailKey,
-        ContentType: file.mimetype,
-      });
-      await this._s3.send(thumbnailCommand);
-      response['thumbnail'] = thumbnailKey;
-    }
+    return this._getS3UploadResponse(filePath);
+  }
+  private async _resizeAndUploadImage(file: Express.Multer.File) {
+    const filePath = this._generateFilePath();
+    const command = new PutObjectCommand({
+      Bucket: process.env.S3_BUCKET,
+      Body: await sharp(file.buffer).webp({ effort: 3 }).toBuffer(),
+      Key: filePath,
+      ContentType: file.mimetype,
+    });
 
+    await this._s3.send(command);
+    const response = await this._getS3UploadResponse(filePath);
+    const thumbnailKey = filePath + this._thumbnailExt;
+    const thumbnailCommand = new PutObjectCommand({
+      Bucket: process.env.S3_BUCKET,
+      Body: await sharp(file.buffer)
+        .resize(100, 100, {
+          fit: 'outside',
+        })
+        .webp({ effort: 3 })
+        .toBuffer(),
+      Key: thumbnailKey,
+      ContentType: file.mimetype,
+    });
+    await this._s3.send(thumbnailCommand);
+    response['thumbnail'] = thumbnailKey;
     return response;
   }
   async storePermanent(path: string, newFolder: string) {
