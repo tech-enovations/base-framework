@@ -26,7 +26,7 @@ export class BaseController {
       skip,
       limit,
     } = option;
-
+    res.set('Cache-Control', 'public, max-age=31557600');
     res.status(status).send({
       status,
       message: message,
