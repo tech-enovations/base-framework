@@ -87,7 +87,7 @@ export class AwsS3Service implements IStorageService {
     const filePath = this._generateFilePath();
     const command = new PutObjectCommand({
       Bucket: process.env.S3_BUCKET,
-      Body: await sharp(file.buffer).webp({ effort: 3 }).toBuffer(),
+      Body: await sharp(file.buffer).jpeg({ mozjpeg: true }).toBuffer(),
       Key: filePath,
       ContentType: file.mimetype,
     });
