@@ -13,6 +13,7 @@ export interface IStorageService {
 export type UploadResponse = {
   path: string;
   url: string;
+  thumbnail?: string;
 };
 
 export const STORAGE_UPLOAD_EVENT = 'Storage:UploadFile';

@@ -10,9 +10,11 @@ import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { IStorageService } from '../../../core/types';
 import { generateRandomId } from '../../../utils';
+import * as sharp from 'sharp';
 
 @Injectable()
 export class AwsS3Service implements IStorageService {
+  private _thumbnailExt = '-thumbnail';
   private _s3: S3;
   private _s3Bucket: string;
   private _temporaryFolder: string;
@@ -74,12 +76,27 @@ export class AwsS3Service implements IStorageService {
       ContentType: file.mimetype,
     });
     // this._eventEmitter.emit(STORAGE_UPLOAD_EVENT, command);
-    await this._s3.send(command);
     // return {
     //   path: filePath,
     //   url: filePath,
     // };
-    return this._getS3UploadResponse(filePath);
+    const thumbnailKey = filePath + this._thumbnailExt;
+    const thumbnailCommand = new PutObjectCommand({
+      Bucket: process.env.S3_BUCKET,
+      Body: await sharp(file.buffer)
+        .resize(200, 200)
+        .webp({ effort: 3 })
+        .toBuffer(),
+      Key: thumbnailKey,
+      ContentType: file.mimetype,
+    });
+    await Promise.all([
+      this._s3.send(command),
+      this._s3.send(thumbnailCommand),
+    ]);
+    const response = await this._getS3UploadResponse(filePath);
+    response['thumbnail'] = thumbnailKey;
+    return response;
   }
   async storePermanent(path: string, newFolder: string) {
     const filePath = this.getFilePath(path);
