@@ -123,6 +123,7 @@ export class AwsS3Service implements IStorageService {
 
   public async presign(url: string): Promise<string> {
     const filePath = this.getFilePath(url);
+    return `${process.env.CLOUDFRONT_STORAGE_ENDPOINT}/${filePath}`;
     return getCloudFrontSignedUrl({
       keyPairId: this._cloudfrontKeyPairId,
       privateKey: this._cloudfrontPrivateKey,
