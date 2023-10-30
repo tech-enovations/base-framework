@@ -98,7 +98,7 @@ export class AwsS3Service implements IStorageService {
     const thumbnailCommand = new PutObjectCommand({
       Bucket: process.env.S3_BUCKET,
       Body: await sharp(file.buffer)
-        .resize(100, 100, {
+        .resize(200, 200, {
           fit: 'outside',
         })
         .webp({ effort: 3 })
