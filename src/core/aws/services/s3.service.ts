@@ -67,10 +67,7 @@ export class AwsS3Service implements IStorageService {
     // if (FILE_CONSTANT.VIDEO_MIME_TYPES.includes(ContentType)) {
     //   ContentType = 'video/mp4';
     // }
-    if (
-      file.mimetype.includes('image') &&
-      !file.originalname.toLowerCase().includes('heic')
-    ) {
+    if (file.mimetype.includes('image')) {
       return this._resizeAndUploadImage(file);
     }
 
