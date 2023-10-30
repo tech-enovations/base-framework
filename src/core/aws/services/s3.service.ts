@@ -7,9 +7,9 @@ import {
 import { getSignedUrl as getCloudFrontSignedUrl } from '@aws-sdk/cloudfront-signer';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { IStorageService, STORAGE_UPLOAD_EVENT } from '../../../core/types';
-import { generateRandomId } from '../../../utils';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { IStorageService } from '../../../core/types';
+import { generateRandomId } from '../../../utils';
 
 @Injectable()
 export class AwsS3Service implements IStorageService {
@@ -21,6 +21,7 @@ export class AwsS3Service implements IStorageService {
   private _cloudfrontEndpoint: string;
   private _cloudfrontKeyPairId: string;
   private _cloudfrontPrivateKey: string;
+  private _deletedFolder: string;
 
   constructor(
     private _configService: ConfigService,
@@ -36,6 +37,7 @@ export class AwsS3Service implements IStorageService {
     this._temporaryFolder =
       _configService.get('S3_UPLOAD_FOLDER') || 'temporary';
     this._s3Bucket = _configService.get('S3_BUCKET');
+    this._deletedFolder = 'deleted';
     this._urlPrefix = `https://${this._s3Bucket}.s3.${_configService.get(
       'REGION',
     )}.amazonaws.com`;
@@ -90,13 +92,17 @@ export class AwsS3Service implements IStorageService {
     await this._s3.send(command);
     return this._getS3UploadResponse(newFileKey);
   }
-  public async remove(path: string): Promise<void> {
+  public async permanentlyRemove(path: string): Promise<void> {
     const fileKey = this.getFilePath(path);
     const command = new DeleteObjectCommand({
       Bucket: this._s3Bucket,
       Key: fileKey,
     });
     await this._s3.send(command);
+  }
+
+  public async remove(path: string) {
+    return this.storePermanent(path, this._deletedFolder);
   }
 
   private _getPresignPolicy(uri: string, ttl = 86400): string {

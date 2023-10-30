@@ -4,9 +4,10 @@ export interface IStorageService {
   s3: S3Client;
   uploadFile(file: Express.Multer.File): Promise<UploadResponse>;
   storePermanent(path: string, newFolder: string): Promise<UploadResponse>;
-  remove(path: string): Promise<void>;
+  remove(path: string): Promise<UploadResponse>;
   presign(path: string): Promise<string>;
   getFilePath(url: string): string;
+  permanentlyRemove(path: string): Promise<void>;
 }
 
 export type UploadResponse = {

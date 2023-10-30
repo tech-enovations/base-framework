@@ -22,6 +22,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.433.0",
     "@aws-sdk/cloudfront-signer": "^3.433.0",
+    "@aws-sdk/lib-storage": "^3.437.0",
     "@aws-sdk/s3-request-presigner": "^3.433.0",
     "@nestjs/cache-manager": "^2.1.0",
     "@nestjs/common": "^9.0.0",
