@@ -37,7 +37,7 @@ export class AwsS3Service implements IStorageService {
     this._temporaryFolder =
       _configService.get('S3_UPLOAD_FOLDER') || 'temporary';
     this._s3Bucket = _configService.get('S3_BUCKET');
-    this._deletedFolder = 'deleted';
+    this._deletedFolder = _configService.get('s3_deleted') || ' s3_deleted';
     this._urlPrefix = `https://${this._s3Bucket}.s3.${_configService.get(
       'REGION',
     )}.amazonaws.com`;
