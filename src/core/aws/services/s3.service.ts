@@ -11,7 +11,6 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { IStorageService } from '../../../core/types';
 import { generateRandomId } from '../../../utils';
 import * as sharp from 'sharp';
-const convert = require('heic-convert');
 @Injectable()
 export class AwsS3Service implements IStorageService {
   private _thumbnailExt = '-thumbnail';
@@ -68,7 +67,10 @@ export class AwsS3Service implements IStorageService {
     // if (FILE_CONSTANT.VIDEO_MIME_TYPES.includes(ContentType)) {
     //   ContentType = 'video/mp4';
     // }
-    if (file.mimetype.includes('image')) {
+    if (
+      file.mimetype.includes('image') &&
+      !file.originalname.toLowerCase().includes('heic')
+    ) {
       return this._resizeAndUploadImage(file);
     }
 
@@ -84,13 +86,6 @@ export class AwsS3Service implements IStorageService {
     return this._getS3UploadResponse(filePath);
   }
   private async _resizeAndUploadImage(file: Express.Multer.File) {
-    if (file.originalname.toLowerCase().includes('heic')) {
-      file.buffer = await convert({
-        buffer: file.buffer, // the HEIC file buffer
-        format: 'JPEG', // output format
-        quality: 1, // the jpeg compression quality, between 0 and 1
-      });
-    }
     const filePath = this._generateFilePath();
     const command = new PutObjectCommand({
       Bucket: process.env.S3_BUCKET,
