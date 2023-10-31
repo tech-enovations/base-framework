@@ -9,7 +9,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { IStorageService } from '../../../core/types';
-import { generateRandomId } from '../../../utils';
+import { asyncMap, generateRandomId } from '../../../utils';
 import * as sharp from 'sharp';
 @Injectable()
 export class AwsS3Service implements IStorageService {
@@ -38,7 +38,7 @@ export class AwsS3Service implements IStorageService {
     this._temporaryFolder =
       _configService.get('S3_UPLOAD_FOLDER') || 'temporary';
     this._s3Bucket = _configService.get('S3_BUCKET');
-    this._deletedFolder = _configService.get('s3_deleted') || 's3_deleted';
+    this._deletedFolder = _configService.get('s3_deleted') || ' s3_deleted';
     this._urlPrefix = `https://${this._s3Bucket}.s3.${_configService.get(
       'REGION',
     )}.amazonaws.com`;
@@ -83,32 +83,53 @@ export class AwsS3Service implements IStorageService {
     return this._getS3UploadResponse(filePath);
   }
   private async _resizeAndUploadImage(file: Express.Multer.File) {
-    const filePath = this._generateFilePath();
-    const command = new PutObjectCommand({
-      Bucket: process.env.S3_BUCKET,
-      Body: await sharp(file.buffer).jpeg({ mozjpeg: true }).toBuffer(),
-      Key: filePath,
-      ContentType: file.mimetype,
-    });
-
-    await this._s3.send(command);
+    const [filePath, thumbnailPath] = await this._sendWebpPutObjectCommands(
+      file,
+    );
     const response = await this._getS3UploadResponse(filePath);
-    const thumbnailKey = filePath + this._thumbnailExt;
-    const thumbnailCommand = new PutObjectCommand({
-      Bucket: process.env.S3_BUCKET,
-      Body: await sharp(file.buffer)
+    response['thumbnail'] = thumbnailPath;
+    return response;
+  }
+
+  private async _sendWebpPutObjectCommands(file: Express.Multer.File) {
+    const filePath = this._generateFilePath();
+    const { webpBuffer, thumbnailBuffer } = await this._convertToWebp(
+      file.buffer,
+    );
+    return asyncMap(
+      [
+        { buffer: webpBuffer, path: filePath },
+        { buffer: thumbnailBuffer, path: filePath + this._thumbnailExt },
+      ],
+      async ({ buffer, path }) => {
+        const command = new PutObjectCommand({
+          Bucket: process.env.S3_BUCKET,
+          Body: buffer,
+          Key: path,
+          ContentType: file.mimetype,
+        });
+        await this._s3.send(command);
+        return path;
+      },
+    );
+  }
+
+  private async _convertToWebp(buffer: Buffer) {
+    const [webpBuffer, thumbnailBuffer] = await Promise.all([
+      sharp(buffer).webp({ effort: 3 }).toBuffer(),
+      sharp(buffer)
         .resize(200, 200, {
           fit: 'outside',
         })
         .webp({ effort: 3 })
         .toBuffer(),
-      Key: thumbnailKey,
-      ContentType: file.mimetype,
-    });
-    await this._s3.send(thumbnailCommand);
-    response['thumbnail'] = thumbnailKey;
-    return response;
+    ]);
+    return {
+      webpBuffer,
+      thumbnailBuffer,
+    };
   }
+
   async storePermanent(path: string, newFolder: string) {
     const filePath = this.getFilePath(path);
     const newFileKey = newFolder + '/' + filePath.split('/')[1];
