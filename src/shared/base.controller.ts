@@ -4,9 +4,9 @@ import { LoggerService } from '../../src/core/logger';
 
 export class BaseController {
   private _logger = new LoggerService(BaseController.name);
-  public responseCustom(
+  public responseCustom<T>(
     res: Response,
-    data: any,
+    data: T,
     option: ResponseOption = {
       total: null,
       message: null,
@@ -29,7 +29,7 @@ export class BaseController {
     res.status(status).send({
       status,
       message: message,
-      data: data,
+      data,
       total,
       code,
       extraData,
