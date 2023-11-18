@@ -1,4 +1,5 @@
 // import { customAlphabet } from 'nanoid';
+import { compareSync, hashSync } from 'bcrypt';
 
 export enum UnitTime {
   Seconds = 'seconds',
@@ -56,4 +57,29 @@ export const generateRandomId = () => {
   // );
   // return `${new Date().getTime()}-${nanoid()}`;
   return `${new Date().getTime()}`;
+};
+
+export const textToSlug = (text: string) => {
+  return text
+    .toString()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') //remove diacritics
+    .toLowerCase()
+    .replace(/\s+/g, '_') //spaces to dashes
+    .replace(/&/g, '-and-') //ampersand to and
+    .replace(/[^\w\-]+/g, '') //remove non-words
+    .replace(/\-\-+/g, '_') //collapse multiple dashes
+    .replace(/^-+/, '') //trim starting dash
+    .replace(/-+$/, ''); //trim ending dash
+};
+
+export const hashPassword = (password: string) => {
+  return hashSync(password, 12);
+};
+
+export const comparePasswords = (
+  password: string,
+  storedPasswordHash: string,
+) => {
+  return compareSync(password, storedPasswordHash);
 };

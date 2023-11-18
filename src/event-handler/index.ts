@@ -1,11 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { LoggerService } from '../src/core/logger';
+import { LoggerService } from '../core/logger';
 import {
   CoreServices,
   IStorageService,
   STORAGE_UPLOAD_EVENT,
-} from './core/types';
+} from '../core/types';
 
 @Injectable()
 export class HandleEvent {

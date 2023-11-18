@@ -1,11 +1,19 @@
 import { Global, Module } from '@nestjs/common';
 import { CoreModule } from './core';
-import { HandleEvent } from './handle-event';
+import { HandleEvent } from './event-handler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ConfigModule } from '@nestjs/config';
+import { DatabaseModule } from './database';
+import { FileModule } from './domain/files';
+import { AuthModule } from './domain/auth/auth.module';
 
 @Global()
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      envFilePath: ['.env.development', '.env'],
+      isGlobal: true,
+    }),
     EventEmitterModule.forRoot({
       // set this to `true` to use wildcards
       wildcard: false,
@@ -23,8 +31,11 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       ignoreErrors: false,
     }),
     CoreModule,
+    DatabaseModule,
+    FileModule,
+    AuthModule,
   ],
   providers: [HandleEvent],
   exports: [CoreModule],
 })
-export class BaseFrameworkModule {}
+export class AppModule {}
