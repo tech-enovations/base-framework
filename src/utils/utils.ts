@@ -1,11 +1,6 @@
 // import { customAlphabet } from 'nanoid';
 import { compareSync, hashSync } from 'bcrypt';
 
-export enum UnitTime {
-  Seconds = 'seconds',
-  Milliseconds = 'milliseconds',
-}
-
 export type Dictionary<T> = {
   [key: string]: T;
 };
@@ -35,15 +30,6 @@ export const asyncMap = <T, K>(
 ) => {
   const promises = arr.map(fn);
   return Promise.all(promises);
-};
-
-export const convertUnitTime = (time: number, targetUnit: UnitTime) => {
-  if (targetUnit === UnitTime.Seconds) {
-    return time >= 1000 ? time / 1000 : time;
-  }
-  if (targetUnit === UnitTime.Milliseconds) {
-    return time < 1000 ? time * 1000 : time;
-  }
 };
 
 export const getBucketCacheKey = (key: string, id: number) => {

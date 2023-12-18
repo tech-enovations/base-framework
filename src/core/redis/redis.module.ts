@@ -1,28 +1,42 @@
-import { CacheModule } from '@nestjs/cache-manager';
-import { DynamicModule, Module } from '@nestjs/common';
-import { CoreServices } from '../types';
-import { RedisModuleAsyncOptions } from './redis.interface';
-import { RedisService } from './redis.service';
+import { DynamicModule, Global, Module } from '@nestjs/common';
+import { RedisCoreModule } from './redis.core-module';
+import {
+  RedisModuleAsyncOptions,
+  RedisModuleOptions,
+} from './redis.interfaces';
+import { RedisClientService } from './redis.service';
+import { CACHING_SERVICE_TOKEN } from './redis.constants';
+
+@Global()
 @Module({
-  imports: [
-    CacheModule.register({
-      isGlobal: true,
-    }),
-  ],
   providers: [
     {
-      useClass: RedisService,
-      provide: CoreServices.CachingService,
+      useClass: RedisClientService,
+      provide: CACHING_SERVICE_TOKEN,
     },
   ],
-  exports: [CoreServices.CachingService],
+  exports: [CACHING_SERVICE_TOKEN],
 })
 export class RedisModule {
-  public static forRootAsync(options: RedisModuleAsyncOptions): DynamicModule {
+  public static forRoot(
+    options: RedisModuleOptions,
+    connection?: string,
+  ): DynamicModule {
     return {
       module: RedisModule,
-      imports: [CacheModule.registerAsync(options as any)],
-      exports: [RedisModule],
+      imports: [RedisCoreModule.forRoot(options, connection)],
+      exports: [RedisCoreModule],
+    };
+  }
+
+  public static forRootAsync(
+    options: RedisModuleAsyncOptions,
+    connection?: string,
+  ): DynamicModule {
+    return {
+      module: RedisModule,
+      imports: [RedisCoreModule.forRootAsync(options, connection)],
+      exports: [RedisCoreModule],
     };
   }
 }

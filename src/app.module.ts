@@ -1,5 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import { CoreModule } from './core';
+import { CoreModule, RedisModule } from './core';
 import { HandleEvent } from './event-handler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ConfigModule } from '@nestjs/config';
@@ -34,6 +34,13 @@ import { AuthModule } from './domain/auth/auth.module';
     DatabaseModule,
     FileModule,
     AuthModule,
+    RedisModule.forRootAsync({
+      useFactory: () => ({
+        config: {
+          url: process.env.REDIS_URL,
+        },
+      }),
+    }),
   ],
   providers: [HandleEvent],
   exports: [CoreModule],
