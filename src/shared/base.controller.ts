@@ -1,9 +1,12 @@
-import { HttpStatus } from '@nestjs/common';
-import { Response } from 'express';
+import { HttpStatus, Inject } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { LoggerService } from '../../src/core/logger';
+import { REQUEST } from '@nestjs/core';
 
 export class BaseController {
   private _logger = new LoggerService(BaseController.name);
+  @Inject(REQUEST) protected _request: Request;
+
   public responseCustom<T>(
     res: Response,
     data: T,
@@ -26,6 +29,7 @@ export class BaseController {
       skip,
       limit,
     } = option;
+
     res.status(status).send({
       status,
       message: message,

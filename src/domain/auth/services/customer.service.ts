@@ -18,8 +18,14 @@ export class CustomerService {
     private _tokenService: TokenService,
   ) {}
 
-  public async login(loginDto: LoginDTO) {
-    const customer = await this.validateCustomer(loginDto);
+  public async getProfile(customer: Customer) {
+    const profile = await this._customerRepository.findOneById(customer._id, {
+      lean: true,
+    });
+    return new Customer(profile).serialize();
+  }
+
+  public async refreshAccessToken(customer: Customer) {
     const jwt = await this._tokenService.genToken(customer);
     return {
       user: customer,
@@ -27,6 +33,25 @@ export class CustomerService {
         jwt,
       },
     };
+  }
+
+  public async login(loginDto: LoginDTO) {
+    const customer = await this.validateCustomer(loginDto);
+    const { jwt, refreshToken } = await this._tokenService.updateUserToken(
+      customer,
+    );
+    return {
+      user: customer,
+      tokenInfo: {
+        jwt,
+      },
+      refreshToken,
+    };
+  }
+
+  public async logout(customer: Customer) {
+    await this._tokenService.deleteUserToken(customer);
+    return true;
   }
 
   public async validateCustomer(loginDto: LoginDTO) {

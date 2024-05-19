@@ -2,22 +2,19 @@ import { Global, Module } from '@nestjs/common';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { CustomerService, UserService } from './services';
 import { CustomerController } from './controllers';
-import { JwtCustomerStrategy } from './strategies';
+import { JwtCustomerStrategy, JwtRefreshCustomerStrategy } from './strategies';
 import { TokenService } from './services/token.service';
 
 @Global()
 @Module({
-  imports: [
-    JwtModule.register({
-      signOptions: { expiresIn: '5s' },
-    }),
-  ],
+  imports: [JwtModule.register({})],
   controllers: [CustomerController],
   providers: [
     JwtService,
     UserService,
     CustomerService,
     JwtCustomerStrategy,
+    JwtRefreshCustomerStrategy,
     TokenService,
   ],
   exports: [
@@ -25,6 +22,7 @@ import { TokenService } from './services/token.service';
     UserService,
     CustomerService,
     JwtCustomerStrategy,
+    JwtRefreshCustomerStrategy,
     TokenService,
   ],
 })

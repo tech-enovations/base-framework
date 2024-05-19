@@ -46,12 +46,16 @@ export class BaseUser extends BaseModel {
   @Prop()
   gender?: string;
 
+  @Prop()
+  refreshToken?: string;
+
   constructor(data?: Partial<BaseUser>) {
     super(data);
     this.username = data.username;
     this.password = data.password;
     this.userType = data.userType;
     this.status = data.status;
+    this.refreshToken = data.refreshToken;
   }
 
   public serialize() {
@@ -63,9 +67,20 @@ export class BaseUser extends BaseModel {
   }
 
   static getSecret(userType: UserType) {
-    const secret = {
-      [UserType.Customer]: process.env.SECRET_CUSTOMER_JWT,
-    };
-    return secret[userType];
+    switch (userType) {
+      case UserType.Customer:
+        return process.env.SECRET_CUSTOMER_JWT;
+      default:
+        throw new Error(`User type ${userType} not implemented!`);
+    }
+  }
+
+  static getRefreshSecret(userType: UserType) {
+    switch (userType) {
+      case UserType.Customer:
+        return process.env.REFRESH_SECRET_CUSTOMER_JWT;
+      default:
+        throw new Error(`User type ${userType} not implemented!`);
+    }
   }
 }

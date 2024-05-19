@@ -5,7 +5,7 @@ import {
   RedisModuleOptions,
 } from './redis.interfaces';
 import { RedisClientService } from './redis.service';
-import { CACHING_SERVICE_TOKEN } from './redis.constants';
+import { CACHING_SERVICE_TOKEN, REDIS_CONFIG_OPTIONS } from './redis.constants';
 
 @Global()
 @Module({
@@ -26,6 +26,12 @@ export class RedisModule {
       module: RedisModule,
       imports: [RedisCoreModule.forRoot(options, connection)],
       exports: [RedisCoreModule],
+      providers: [
+        {
+          provide: REDIS_CONFIG_OPTIONS,
+          useValue: options,
+        },
+      ],
     };
   }
 
@@ -37,6 +43,12 @@ export class RedisModule {
       module: RedisModule,
       imports: [RedisCoreModule.forRootAsync(options, connection)],
       exports: [RedisCoreModule],
+      providers: [
+        {
+          provide: REDIS_CONFIG_OPTIONS,
+          useValue: options,
+        },
+      ],
     };
   }
 }

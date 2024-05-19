@@ -14,9 +14,12 @@ export class CustomerRepository extends BaseRepository<Customer> {
   }
 
   public async findByUsername(username: string) {
-    return this.findOneBy({
-      username,
-      deletedAt: { $eq: null },
-    });
+    return this.findOneBy(
+      {
+        username,
+        deletedAt: { $eq: null },
+      },
+      { lean: true },
+    );
   }
 }

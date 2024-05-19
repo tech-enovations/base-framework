@@ -1,21 +1,29 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ChainableCommander, Redis } from 'ioredis';
 import { LoggerService } from '../logger';
 import { InjectRedis } from './redis.decorators';
-import { HincrbyPayload, ICachingService, UnitTime } from './redis.interfaces';
+import {
+  HIncrByPayload,
+  ICachingService,
+  RedisModuleOptions,
+  UnitTime,
+} from './redis.interfaces';
 import { convertUnitTime } from './redis.utils';
+import { REDIS_CONFIG_OPTIONS } from './redis.constants';
 
 @Injectable()
 export class RedisClientService implements ICachingService {
-  private _prefix: string = 'haha:';
   private _logger = new LoggerService(RedisClientService.name);
-  constructor(@InjectRedis() private readonly _redis: Redis) {}
+  constructor(
+    @InjectRedis() private readonly _redis: Redis,
+    @Inject(REDIS_CONFIG_OPTIONS) private _options: RedisModuleOptions,
+  ) {}
 
   get redis() {
     return this._redis;
   }
 
-  public async hset<T>(
+  public async hSet<T>(
     key: string,
     field: string,
     value: T,
@@ -31,7 +39,7 @@ export class RedisClientService implements ICachingService {
     });
   }
 
-  public async hget<T>(key: string, field: string) {
+  public async hGet<T>(key: string, field: string) {
     const data = await this.redis.hget(this._cacheKey(key), field);
     try {
       const parsed = JSON.parse(data) as T;
@@ -41,7 +49,7 @@ export class RedisClientService implements ICachingService {
     }
   }
 
-  public async hdel(key: string, field: string): Promise<void> {
+  public async hDel(key: string, field: string): Promise<void> {
     await this.redis.hdel(this._cacheKey(key), field);
   }
 
@@ -101,7 +109,7 @@ export class RedisClientService implements ICachingService {
     return this.redis.keys(pattern);
   }
 
-  public async hgetall(key: string) {
+  public async hGetAll(key: string) {
     return this.redis.hgetall(key);
   }
 
@@ -113,11 +121,11 @@ export class RedisClientService implements ICachingService {
     return this.redis.del(this._cacheKey(keys));
   }
 
-  public async hincrby({ key, field, increment = 0 }: HincrbyPayload) {
+  public async hIncrBy({ key, field, increment = 0 }: HIncrByPayload) {
     return this.redis.hincrby(this._cacheKey(key), field, increment);
   }
 
-  public async multiHincrby(payload: HincrbyPayload[]) {
+  public async multiHIncrBy(payload: HIncrByPayload[]) {
     const multi = this.redis.multi();
     payload.forEach(({ key, field, increment = 0 }) => {
       multi.hincrby(this._cacheKey(key), field, increment);
@@ -134,7 +142,8 @@ export class RedisClientService implements ICachingService {
   }
 
   private _cacheKey(key: string) {
-    return this._prefix + key;
+    // const prefix = this._options.config.keyPrefix
+    return key;
   }
 
   public async getTTL(key: string): Promise<number> {
@@ -150,14 +159,14 @@ export class RedisClientService implements ICachingService {
     errorHandler: (error: Error) => Promise<T>,
   ): Promise<T> {
     try {
-      const cachedData = await this.hget<T>(key, field);
+      const cachedData = await this.hGet<T>(key, field);
       if (cachedData) {
         return cachedData;
       }
       const { data, ttl } = await dataFetcher();
 
       if (data) {
-        await this.hset(key, field, data, ttl);
+        await this.hSet(key, field, data, ttl);
       }
 
       return data;

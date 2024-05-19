@@ -7,7 +7,6 @@ import {
 import { getSignedUrl as getCloudFrontSignedUrl } from '@aws-sdk/cloudfront-signer';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { IStorageService } from '../../../core/types';
 import { asyncMap, generateRandomId } from '../../../utils';
 import * as sharp from 'sharp';
@@ -24,16 +23,10 @@ export class AwsS3Service implements IStorageService {
   private _cloudfrontPrivateKey: string;
   private _deletedFolder: string;
 
-  constructor(
-    private _configService: ConfigService,
-    private _eventEmitter: EventEmitter2,
-  ) {
+  constructor(private _configService: ConfigService) {
+    // NOTE: use aws-cli for credentials instead import to code
     this._s3 = new S3({
       region: _configService.get('REGION'),
-      credentials: {
-        accessKeyId: _configService.get('AWS_ACCESS_KEY_ID'),
-        secretAccessKey: _configService.get('AWS_SECRET_ACCESS_KEY'),
-      },
     });
     this._temporaryFolder =
       _configService.get('S3_UPLOAD_FOLDER') || 'temporary';
@@ -60,13 +53,6 @@ export class AwsS3Service implements IStorageService {
     return `${this._temporaryFolder}/${generateRandomId()}`;
   }
   public async uploadFile(file: Express.Multer.File) {
-    // let ContentType = file.mimetype;
-    // if (FILE_CONSTANT.IMAGE_MIME_TYPES.includes(ContentType)) {
-    //   ContentType = 'image/png';
-    // }
-    // if (FILE_CONSTANT.VIDEO_MIME_TYPES.includes(ContentType)) {
-    //   ContentType = 'video/mp4';
-    // }
     if (file.mimetype.includes('image')) {
       return this._resizeAndUploadImage(file);
     }
