@@ -10,7 +10,7 @@ import { Response } from 'express';
 import { JWT_CONSTANT } from 'src/constants';
 import { BaseController } from 'src/shared';
 import { GoogleOAuthCustomerGuard } from '../guards';
-import { CustomerService, CustomerSocialService } from '../services';
+import { CustomerSocialService } from '../services';
 import { GoogleProfile } from '../types/social.type';
 
 @Controller('auth/customer-social')
@@ -32,10 +32,13 @@ export class AuthCustomerSocialController extends BaseController {
   @UseGuards(GoogleOAuthCustomerGuard)
   public async googleRedirect(@Res() response: Response) {
     const profile = this._request?.user as GoogleProfile;
-    const { refreshToken, tokenInfo, user } =
+    const { refreshToken, tokenInfo } =
       await this._customerSocialService.googleLogin(profile);
     this._setCookieRefreshToken(response, refreshToken);
-    return this.responseCustom(response, { user: user.serialize(), tokenInfo });
+    // NOTE: redirect front end with access token
+    response.redirect(
+      `${process.env.CLIENT_AUTH_REDIRECT}?accessToken=${tokenInfo.jwt}`,
+    );
   }
 
   private _setCookieRefreshToken(response: Response, refreshToken: string) {
@@ -43,6 +46,7 @@ export class AuthCustomerSocialController extends BaseController {
       httpOnly: true,
       path: this._cookiePath,
       maxAge: JWT_CONSTANT.EXPIRE_SECONDS,
+      sameSite: 'strict',
     });
   }
 }

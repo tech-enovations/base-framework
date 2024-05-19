@@ -23,7 +23,9 @@ export class JwtRefreshCustomerStrategy extends PassportStrategy(
     });
   }
   private static extractJWT(request: Request): string | null {
-    return request.cookies?.[JWT_CONSTANT.COOKIE.NAME];
+    const token = request.cookies?.[JWT_CONSTANT.COOKIE.NAME];
+    console.log('token', token);
+    return token;
   }
 
   public async validate(request: Request, payload: Partial<BaseUser>) {

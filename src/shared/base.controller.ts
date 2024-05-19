@@ -7,6 +7,10 @@ export class BaseController {
   private _logger = new LoggerService(BaseController.name);
   @Inject(REQUEST) protected _request: Request;
 
+  public static getBaseUrl(request: Request) {
+    return `${request.protocol}://${request.get('Host')}${request.originalUrl}`;
+  }
+
   public responseCustom<T>(
     res: Response,
     data: T,
