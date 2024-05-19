@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { Customer, CustomerRepository, UserProvider } from 'src/database';
+import {
+  BaseUser,
+  Customer,
+  CustomerRepository,
+  UserProvider,
+} from 'src/database';
 import { GoogleProfile } from '../types';
 import { CustomerService } from './customer.service';
 
@@ -10,20 +15,22 @@ export class CustomerSocialService {
     private _customerService: CustomerService,
   ) {}
 
+  public async upsertSocial(
+    condition: Pick<BaseUser, 'providerIdentity' | 'provider'>,
+    payload: Customer,
+  ) {
+    return this._customerRepository.findOneOrCreate(condition, payload);
+  }
+
   public async googleLogin(profile: GoogleProfile) {
-    const customer = await this._customerRepository.findOneBy(
+    const customer = await this.upsertSocial(
       {
         provider: UserProvider.GOOGLE,
         providerIdentity: profile.id,
       },
-      { lean: true },
+      Customer.mapGoogleProfile(profile),
     );
-    if (!customer) {
-      const googleCustomer = await this._customerRepository.create(
-        Customer.mapGoogleProfile(profile),
-      );
-      return this._customerService.loginResponse(googleCustomer);
-    }
+
     return this._customerService.loginResponse(customer);
   }
 }

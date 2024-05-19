@@ -19,6 +19,10 @@ export abstract class BaseRepository<T extends BaseModel> {
     this._model = _model;
   }
 
+  get baseModel() {
+    return this._model;
+  }
+
   public createQueryBuilder() {
     return this.baseModel.find();
   }
@@ -54,7 +58,7 @@ export abstract class BaseRepository<T extends BaseModel> {
     filter: BaseFilter,
   ): Promise<BaseResponse.List<Require_id<FlattenMaps<T>>>> {
     const { limit = 10, skip = 0 } = new BaseFilter(filter);
-    const count = this._model.find().merge(query).count();
+    const count = this.baseModel.find().merge(query).count();
     const [items, total] = await Promise.all([
       query.limit(limit).skip(skip).lean(),
       count,
@@ -70,14 +74,14 @@ export abstract class BaseRepository<T extends BaseModel> {
   }
 
   public async create(dto: Partial<T>): Promise<T> {
-    return this._model.create(dto);
+    return this.baseModel.create(dto);
   }
 
   public createMany(
     dto: T[] | any[],
     options: CreateOptions = {},
   ): Promise<T[]> {
-    return this._model.create(dto, options);
+    return this.baseModel.create(dto, options);
   }
 
   public findOneById(
@@ -85,7 +89,7 @@ export abstract class BaseRepository<T extends BaseModel> {
     options: QueryOptions<T> = {},
   ) {
     options['lean'] = true;
-    return this._model.findById(id, options?.projection, options);
+    return this.baseModel.findById(id, options?.projection, options);
   }
 
   public async findOneBy(
@@ -93,16 +97,16 @@ export abstract class BaseRepository<T extends BaseModel> {
     options: QueryOptions<T> = {},
   ) {
     options['lean'] = true;
-    return this._model.findOne(condition, options?.projection, options);
+    return this.baseModel.findOne(condition, options?.projection, options);
   }
 
   public findBy(condition: FilterQuery<T>, options: QueryOptions<T> = {}) {
     options['lean'] = true;
-    return this._model.find(condition, options?.projection, options);
+    return this.baseModel.find(condition, options?.projection, options);
   }
 
   public countBy(condition: FilterQuery<T>) {
-    return this._model.count(condition);
+    return this.baseModel.count(condition);
   }
 
   public async findAndCount(
@@ -111,8 +115,8 @@ export abstract class BaseRepository<T extends BaseModel> {
   ): Promise<BaseResponse.List<T>> {
     options['lean'] = true;
     const [total, items] = await Promise.all([
-      this._model.count(condition),
-      this._model.find(condition, options?.projection, options),
+      this.baseModel.count(condition),
+      this.baseModel.find(condition, options?.projection, options),
     ]);
     return {
       total,
@@ -126,7 +130,7 @@ export abstract class BaseRepository<T extends BaseModel> {
     options: QueryOptions<T> = {},
   ): Promise<T> {
     options['new'] = true;
-    return this._model.findOneAndUpdate({ _id: id }, dto, options);
+    return this.baseModel.findOneAndUpdate({ _id: id }, dto, options);
   }
   public updateBy(
     condition: FilterQuery<T>,
@@ -134,7 +138,7 @@ export abstract class BaseRepository<T extends BaseModel> {
     options: QueryOptions<T> = {},
   ): Promise<T> {
     options['new'] = true;
-    return this._model.findOneAndUpdate(condition, dto, options);
+    return this.baseModel.findOneAndUpdate(condition, dto, options);
   }
   public updateMany(
     condition: FilterQuery<T>,
@@ -143,14 +147,14 @@ export abstract class BaseRepository<T extends BaseModel> {
   ) {
     options['new'] = true;
     options['multi'] = true;
-    return this._model.updateMany(condition, dto, options);
+    return this.baseModel.updateMany(condition, dto, options);
   }
 
   public async delete(
     id: Types.ObjectId | string,
     options: QueryOptions<T> = {},
   ): Promise<boolean> {
-    const deleted = await this._model.findByIdAndDelete(id, options).exec();
+    const deleted = await this.baseModel.findByIdAndDelete(id, options).exec();
     return Boolean(deleted);
   }
 
@@ -158,33 +162,29 @@ export abstract class BaseRepository<T extends BaseModel> {
     condition: FilterQuery<T>,
     options: QueryOptions<T> = {},
   ) {
-    await this._model.deleteMany(condition, options);
+    await this.baseModel.deleteMany(condition, options);
   }
 
   public async removeMany(models: T[]) {
-    await this._model.deleteMany({ _id: models.map((el) => el._id) });
+    await this.baseModel.deleteMany({ _id: models.map((el) => el._id) });
   }
 
   public async remove(model: T) {
-    await this._model.deleteOne({ _id: model._id });
+    await this.baseModel.deleteOne({ _id: model._id });
   }
 
   public async deleteOne(
     condition: FilterQuery<T>,
     options: QueryOptions<T> = {},
   ) {
-    await this._model.deleteOne(condition, options);
-  }
-
-  get baseModel() {
-    return this._model;
+    await this.baseModel.deleteOne(condition, options);
   }
 
   public async executeTransaction<T>(
     fn: (session: ClientSession) => Promise<T>,
     handleError?: (error: unknown) => void,
   ) {
-    const session = await this._model.db.startSession();
+    const session = await this.baseModel.db.startSession();
     session.startTransaction();
     try {
       const result = await fn(session);
@@ -199,7 +199,18 @@ export abstract class BaseRepository<T extends BaseModel> {
   }
 
   public async existsWithCondition(condition: FilterQuery<T> = {}) {
-    const data = await this._model.exists(condition).lean().exec();
+    const data = await this.baseModel.exists(condition).lean().exec();
     return Boolean(data);
+  }
+
+  public async findOneOrCreate(
+    condition: FilterQuery<T> = {},
+    data: Partial<T>,
+  ) {
+    const existedData = await this.findOneBy(condition, { lean: true });
+    if (existedData) {
+      return existedData;
+    }
+    return this.create(data);
   }
 }
