@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { JWT_CONSTANT } from 'src/constants';
 
@@ -7,7 +6,7 @@ import { JWT_CONSTANT } from 'src/constants';
 export class GoogleOAuthCustomerGuard extends AuthGuard(
   JWT_CONSTANT.STRATEGIES.CUSTOMER_GOOGLE_TOKEN,
 ) {
-  constructor(private configService: ConfigService) {
+  constructor() {
     super({
       accessType: 'offline',
     });

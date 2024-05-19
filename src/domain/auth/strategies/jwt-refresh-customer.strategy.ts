@@ -6,12 +6,14 @@ import { ERROR_CODE_CONSTANTS, JWT_CONSTANT } from 'src/constants';
 import { BaseStatus, BaseUser, UserType } from 'src/database';
 import { HttpExceptionFilter } from 'src/shared';
 import { UserService } from '../services';
+import { LoggerService } from 'src/core';
 
 @Injectable()
 export class JwtRefreshCustomerStrategy extends PassportStrategy(
   Strategy,
   JWT_CONSTANT.STRATEGIES.REFRESH_CUSTOMER_TOKEN,
 ) {
+  private _logger = new LoggerService(JwtRefreshCustomerStrategy.name);
   constructor(private _userService: UserService) {
     super({
       secretOrKey: BaseUser.getRefreshSecret(UserType.Customer),
@@ -23,9 +25,7 @@ export class JwtRefreshCustomerStrategy extends PassportStrategy(
     });
   }
   private static extractJWT(request: Request): string | null {
-    const token = request.cookies?.[JWT_CONSTANT.COOKIE.NAME];
-    console.log('token', token);
-    return token;
+    return request.cookies?.[JWT_CONSTANT.COOKIE.NAME];
   }
 
   public async validate(request: Request, payload: Partial<BaseUser>) {

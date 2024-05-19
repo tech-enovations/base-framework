@@ -11,7 +11,6 @@ import { LoggerService } from '../../src/core/logger';
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
   private _logger = new LoggerService(HttpExceptionFilter.name);
-  private _translatePathPrefix = 'message';
   public catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();

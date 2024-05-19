@@ -1,5 +1,5 @@
 import { HttpStatus, Inject } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { CookieOptions, Request, Response } from 'express';
 import { LoggerService } from '../../src/core/logger';
 import { REQUEST } from '@nestjs/core';
 
@@ -44,6 +44,23 @@ export class BaseController {
       skip,
       limit,
     });
+  }
+
+  public setCookie<T>(
+    response: Response,
+    name: string,
+    value: T,
+    options: CookieOptions,
+  ) {
+    response.cookie(name, value, options);
+  }
+
+  public clearCookie(
+    response: Response,
+    name: string,
+    options?: CookieOptions,
+  ) {
+    response.clearCookie(name, options);
   }
 }
 

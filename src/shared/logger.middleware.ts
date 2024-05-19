@@ -6,7 +6,6 @@ export class LoggerMiddleware implements NestMiddleware {
   private _logger = new LoggerService(LoggerMiddleware.name);
   public use(request: Request, response: Response, next: NextFunction) {
     const startTime = process.hrtime();
-
     const ipAddress = request.headers['x-forwarded-for'];
     this._logger.log(
       `Request start - ${ipAddress} - [${request.method}] - ${request.url} `,

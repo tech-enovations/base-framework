@@ -42,7 +42,7 @@ export class AuthCustomerSocialController extends BaseController {
   }
 
   private _setCookieRefreshToken(response: Response, refreshToken: string) {
-    response.cookie(this._cookieName, refreshToken, {
+    this.setCookie(response, this._cookieName, refreshToken, {
       httpOnly: true,
       path: this._cookiePath,
       maxAge: JWT_CONSTANT.EXPIRE_SECONDS,

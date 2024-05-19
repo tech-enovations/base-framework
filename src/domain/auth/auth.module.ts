@@ -1,19 +1,19 @@
 import { Global, Module } from '@nestjs/common';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import {
+  AuthCustomerController,
+  AuthCustomerSocialController,
+} from './controllers';
+import {
   CustomerService,
   CustomerSocialService,
   TokenService,
   UserService,
 } from './services';
 import {
-  AuthCustomerController,
-  AuthCustomerSocialController,
-} from './controllers';
-import {
+  GoogleCustomerStrategy,
   JwtCustomerStrategy,
   JwtRefreshCustomerStrategy,
-  GoogleCustomerStrategy,
 } from './strategies';
 
 @Global()
