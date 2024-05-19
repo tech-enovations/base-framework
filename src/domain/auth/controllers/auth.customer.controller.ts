@@ -18,10 +18,10 @@ import { LoginDTO, RegisterDTO } from '../dto';
 import { JwtAuthCustomerGuard, JwtAuthRefreshCustomerGuard } from '../guards';
 import { CustomerService } from '../services';
 
-@Controller('customers')
+@Controller('auth/customers')
 @UsePipes(new ValidationPipe())
 @UseGuards(JwtAuthCustomerGuard)
-export class CustomerController extends BaseController {
+export class AuthCustomerController extends BaseController {
   private _cookieName = JWT_CONSTANT.COOKIE.NAME;
   private _cookiePath = JWT_CONSTANT.COOKIE.PATH;
   constructor(private _customerService: CustomerService) {

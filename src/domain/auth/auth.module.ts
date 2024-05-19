@@ -1,20 +1,33 @@
 import { Global, Module } from '@nestjs/common';
 import { JwtModule, JwtService } from '@nestjs/jwt';
-import { CustomerService, UserService } from './services';
-import { CustomerController } from './controllers';
-import { JwtCustomerStrategy, JwtRefreshCustomerStrategy } from './strategies';
-import { TokenService } from './services/token.service';
+import {
+  CustomerService,
+  CustomerSocialService,
+  TokenService,
+  UserService,
+} from './services';
+import {
+  AuthCustomerController,
+  AuthCustomerSocialController,
+} from './controllers';
+import {
+  JwtCustomerStrategy,
+  JwtRefreshCustomerStrategy,
+  GoogleCustomerStrategy,
+} from './strategies';
 
 @Global()
 @Module({
   imports: [JwtModule.register({})],
-  controllers: [CustomerController],
+  controllers: [AuthCustomerController, AuthCustomerSocialController],
   providers: [
     JwtService,
     UserService,
     CustomerService,
     JwtCustomerStrategy,
     JwtRefreshCustomerStrategy,
+    GoogleCustomerStrategy,
+    CustomerSocialService,
     TokenService,
   ],
   exports: [
@@ -23,6 +36,7 @@ import { TokenService } from './services/token.service';
     CustomerService,
     JwtCustomerStrategy,
     JwtRefreshCustomerStrategy,
+    GoogleCustomerStrategy,
     TokenService,
   ],
 })

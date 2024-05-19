@@ -30,6 +30,11 @@ export enum BaseStatus {
   Disabled = 'disabled',
 }
 
+export enum UserProvider {
+  APP = 'app',
+  GOOGLE = 'google',
+}
+
 export class BaseUser extends BaseModel {
   @Prop()
   username: string;
@@ -49,6 +54,12 @@ export class BaseUser extends BaseModel {
   @Prop()
   refreshToken?: string;
 
+  @Prop({ default: UserProvider.APP })
+  provider: UserProvider;
+
+  @Prop()
+  providerIdentity: string;
+
   constructor(data?: Partial<BaseUser>) {
     super(data);
     this.username = data.username;
@@ -56,6 +67,8 @@ export class BaseUser extends BaseModel {
     this.userType = data.userType;
     this.status = data.status;
     this.refreshToken = data.refreshToken;
+    this.provider = data.provider;
+    this.providerIdentity = data.providerIdentity;
   }
 
   public serialize() {
@@ -63,6 +76,8 @@ export class BaseUser extends BaseModel {
       _id: this._id,
       username: this.username,
       userType: this.userType,
+      provider: this.provider,
+      providerIdentity: this.providerIdentity,
     };
   }
 

@@ -1,7 +1,8 @@
 import { Prop, SchemaFactory } from '@nestjs/mongoose';
 import { CUSTOMER_CONSTANTS } from 'src/constants';
 import { BaseSchema } from 'src/shared';
-import { BaseStatus, BaseUser } from './base.model';
+import { BaseStatus, BaseUser, UserProvider, UserType } from './base.model';
+import { GoogleProfile } from 'src/domain/auth/types';
 
 @BaseSchema(CUSTOMER_CONSTANTS.SCHEMA_NAME)
 export class Customer extends BaseUser {
@@ -20,6 +21,15 @@ export class Customer extends BaseUser {
       userType: data.userType,
       isSupportPortfolio: data.isSupportPortfolio,
     };
+  }
+
+  static mapGoogleProfile(profile: GoogleProfile) {
+    return new Customer({
+      provider: UserProvider.GOOGLE,
+      providerIdentity: profile.id,
+      username: profile.emails[0].value,
+      userType: UserType.Customer,
+    });
   }
 }
 

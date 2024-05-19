@@ -37,11 +37,15 @@ export class CustomerService {
 
   public async login(loginDto: LoginDTO) {
     const customer = await this.validateCustomer(loginDto);
+    return this.loginResponse(customer);
+  }
+
+  public async loginResponse(customer: Customer) {
     const { jwt, refreshToken } = await this._tokenService.updateUserToken(
       customer,
     );
     return {
-      user: customer,
+      user: new Customer(customer),
       tokenInfo: {
         jwt,
       },
