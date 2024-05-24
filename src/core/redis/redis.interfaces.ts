@@ -38,8 +38,8 @@ export type HIncrByPayload = {
 };
 
 export interface ICachingService {
-  get redis(): Redis.Redis;
-  // @ttl in seconds
+  get redisClient(): Redis.Redis;
+  // @ttl in milliseconds
   hSet<T>(
     key: string,
     field: string,
